@@ -1,0 +1,110 @@
+MongoDB
+Connecting to atlas cluster:
+1. open command prompt
+2. mongosh "mongodb+srv://sandbox.5oy9u.mongodb.net/admin" --username m001-student
+3. password: m001-mongodb-basics
+
+Commands:
+show dbs - lists all databases of the cluster
+use database_name - uses that database or creates a new database if not exists
+show collections - lists all collections of the database
+
+querying document
+db.collection_name.find() - lists all documents of the collection, db points to that database
+db.collection_name.find({"district": "palpa"}) - lists all documents of the collection that satisfy given condition 
+db.collection_name.find({"zone": "lumbini", "district": "palpa"}).count() - counts the documents
+
+querying nested/embedded field
+db.collection_name.find({"address.city": "NEW YORK"})
+
+inserting data
+db.collection_name.insert([{"firstName": "Ankush", "lastName": "Kunwar"}, {"firstName": "Jessica", "lastName": "Karki"}]) -inserts many documents into the collection
+
+updating document
+updateOne() - updates only one document (whichever it finds first if many documents satisfy the condition)
+updateMany() - updates all documents that satisfy the condition
+
+db.collection_name.updateMany({"city": "Butwal"}, {"$inc": {"population": 10}})
+--first argument specifies the query  that determines which document to update,
+Second argument specifies the update that needs to happen
+
+{"$set": {"population": 123435}} - sets the field with new value (if that field exists, otherwise creates a new field)
+{"$push" : {field1: vlaue1,…} } - add an element into an array field
+Eg: 
+db.grades.updateOne({ "student_id": 1, "class_id": 460 }, { "$push": { "scores": { "type": "extra credit", "score": 100 } } })
+
+{
+    deleting document
+    deleteOne()
+    deleteMany()
+     
+    use deleteOne only when querying using _id
+    
+    deleting collection - db.collection_name.drop()
+}
+
+{
+    expressive operator
+    db.trips.find({ "$expr": { "$eq": [ "$end station id", "$start station id"] } })
+    
+}
+
+
+{
+    projection:
+    it is the second parameter of find query
+    it shows specified fields
+    db.trips.find({"start station id": 401}, {"bikeid": 1, "_id": 0})
+    
+}
+
+{
+    access elements in the sub-documents of an array field
+    $elemMatch
+}
+
+
+aggregation framework: $match, $group
+With MQL, we can filter and update data
+with Aggregation we can compute and reshape data
+!!aggregation doesnot change the document in database
+
+
+{
+    group by address.country
+    db.listingsAndReviews.aggregate( [ {$project: {"address": 1, "_id": 0}}, { $group: {_id: "$address.country"} } ] )
+    
+    group by address.country with number of data in each country group ($sum: 1 = adds 1+1+1+... for each document in the group )
+    db.listingsAndReviews.aggregate( [ {$project: {"address": 1, "_id": 0}}, { $group: {_id: "$address.country", "count": {"$sum": 1} } } ] )
+        
+}
+
+
+{
+    sort() and limit()
+    db.trips.find().sort({"tripduration": 1}).limit(3)
+    sort 1 = increasing, -1 = decreasing
+}
+
+
+{
+    upsert - update and insert
+    use only when needed 
+    by default set to false
+    
+    update - if there are documents that match filter criteria
+    if not, then insert
+}
+
+{
+    add new field inside a nested array of object:
+
+    db.rooms.updateOne( {"number": "2D", "hostelers.name": "Ujan Shakya"}, {$set: { "hostelers.$.contact": 9811223344  } }  )
+}
+
+{
+    join:
+    in rooms collections, getting hostelers information from hostelers collection 
+
+    db.rooms.aggregate([{ $lookup: { from: "hostelers", localField: "hostelers.name", foreignField: "name", as: "hostelers details" }  }])
+}

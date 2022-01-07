@@ -1,0 +1,7 @@
+db - hostel
+
+-- show the occupied number of a room
+db.rooms.aggregate([ {$match: {"number": "2B"}},  { $project: {"_id":0, "occupied by": {"$size": "$hostelers"}  }  } ])
+
+--join: show all details of hostelers in a room
+db.rooms.aggregate([{ $lookup: { from: "hostelers", localField: "hostelers.name", foreignField: "name", as: "hostelers details" }  }])
